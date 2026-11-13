@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Индивидуальный Финансовый План</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#F4F7F5',
+                            card: '#FFFFFF',
+                            border: '#E2E8F0',
+                            borderHover: '#CBD5E1',
+                            darkGreen: '#0B3D24',
+                            emerald: '#15803D',
+                            accent: '#2ECC71',
+                            accentLight: '#DCFCE7',
+                            gold: '#D97706',
+                            goldLight: '#FEF3C7',
+                            text: '#111827',
+                            muted: '#6B7280',
+                            alertBg: '#FEF2F2',
+                            alertBorder: '#FCA5A5',
+                            alertText: '#991B1B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F4F7F5;
+            background-image: 
+                linear-gradient(rgba(11, 61, 36, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11, 61, 36, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #111827;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4F7F5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0B3D24;
+        }
+
+        /* Row highlight styles */
+        tr.selected-lot-row {
+            background-color: #F0FDF4 !important;
+            border-left: 4px solid #15803D !important;
+        }
+
+        /* Input styling */
+        .custom-input {
+            background-color: #FFFFFF;
+            border: 1px solid #D1D5DB;
+            color: #111827;
+            transition: all 0.2s ease;
+        }
+        .custom-input:focus {
+            outline: none;
+            border-color: #15803D;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+        }
+
+        /* Mode Switcher Animation */
+        .mode-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Table Inputs for Manual Mode */
+        .manual-table-input {
+            background: #FFFFFF;
+            border: 1px dashed #15803D;
+            text-align: center;
+            border-radius: 6px;
+            padding: 4px 6px;
+            width: 100%;
+            color: #0B3D24;
+            font-weight: 700;
+        }
+        .manual-table-input:focus {
+            background: #F0FDF4;
+            border-style: solid;
+            border-color: #D97706;
+            color: #B45309;
+            outline: none;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 text-sm md:text-base selection:bg-brand-accentLight selection:text-brand-darkGreen">
+
+    <div class="max-w-7xl mx-auto space-y-5">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-brand-border shadow-sm">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-brand-darkGreen text-white flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-chart-pie text-brand-accent text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-brand-darkGreen flex items-center gap-2">
+                        ИНДИВИДУАЛЬНЫЙ ФИНАНСОВЫЙ ПЛАН
+                    </h1>
+                    <p class="text-xs text-brand-muted font-medium">Расчёт торговых целей и управления капиталом</p>
+                </div>
+            </div>
+
+            <!-- MODE SWITCHER -->
+            <div class="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200 w-full md:w-auto">
+                <button id="btnModeAuto" onclick="setMode('auto')" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm">
+                    <i class="fa-solid fa-calculator text-brand-accent"></i>
+                    <span>Авторасчёт по формулам</span>
+                </button>
+                <button id="btnModeManual" onclick="setMode('manual')" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Ручной ввод (совместный расчёт)</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- INPUTS & GOAL CARD GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            
+            <!-- GOAL PARAMETERS (2 Cols on Large) -->
+            <div class="lg:col-span-2 bg-white border border-brand-border rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h2 class="font-bold text-base md:text-lg text-brand-darkGreen flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-emerald"></i>
+                        Параметры финансовой цели
+                    </h2>
+                    <span id="modeBadge" class="text-xs px-3 py-1 rounded-full bg-brand-accentLight text-brand-darkGreen font-semibold border border-green-200">
+                        Режим: Автоматический
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Goal Name -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye text-brand-emerald"></i> Финансовая цель
+                        </label>
+                        <input type="text" id="goalName" value="Квартира" placeholder="Например: Квартира, Автомобиль, Капитал" 
+                               oninput="calculatePlan()" class="w-full custom-input px-3.5 py-2.5 rounded-xl text-sm font-medium">
+                    </div>
+
+                    <!-- Target Lot Choice -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-brand-gold"></i> Комфортный объём (Лоты)
+                        </label>
+                        <select id="selectedLot" onchange="calculatePlan()" class="w-full custom-input px-3.5 py-2.5 rounded-xl text-sm font-bold text-brand-darkGreen cursor-pointer">
+                            <option value="1" selected>1 лот ($1 / пункт)</option>
+                            <option value="2">2 лота ($2 / пункт)</option>
+                            <option value="3">3 лота ($3 / пункт)</option>
+                            <option value="4">4 лота ($4 / пункт)</option>
+                            <option value="5">5 лотов ($5 / пункт)</option>
+                        </select>
+                    </div>
+
+                    <!-- Goal Cost USD -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-dollar-sign text-brand-emerald"></i> Стоимость цели ($)</span>
+                            <span class="text-[10px] text-brand-muted font-normal">Базовая валюта</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="costUSD" value="55000" min="100" step="500" 
+                                   oninput="onUsdChange()" class="w-full custom-input pl-8 pr-3 py-2.5 rounded-xl text-base font-extrabold text-brand-darkGreen">
+                            <span class="absolute left-3 top-3 text-brand-muted font-bold text-sm">$</span>
+                        </div>
+                    </div>
+
+                    <!-- RUB Currency Converter -->
+                    <div class="space-y-1.5 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                        <label class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-ruble-sign text-blue-600"></i> В рублях (₽)</span>
+                            <span class="text-[10px] text-brand-muted font-normal">Курс USD: <input type="number" id="usdRate" value="90" oninput="onRubChange()" class="w-12 bg-white text-right text-brand-text font-bold border border-gray-300 rounded px-1 focus:outline-none focus:border-brand-emerald"> ₽</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="costRUB" placeholder="Сумма в рублях" 
+                                   oninput="onRubChange()" class="w-full custom-input pl-8 pr-3 py-2 rounded-lg text-sm text-brand-text">
+                            <span class="absolute left-3 top-2.5 text-brand-muted font-bold text-sm">₽</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeframe Months -->
+                    <div class="space-y-1.5 md:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-calendar-days text-brand-emerald"></i> Срок достижения (мес.)
+                            </label>
+                            <span id="timeframeYearsLabel" class="text-xs text-brand-emerald font-bold">2 года</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="timeframeMonths" value="24" min="1" max="120" 
+                                   oninput="calculatePlan()" class="w-28 custom-input px-3 py-2 rounded-xl text-base font-bold text-center">
+                            
+                            <!-- Quick Presets -->
+                            <div class="flex items-center gap-1.5 flex-1">
+                                <button type="button" onclick="setPresetMonths(12)" class="flex-1 py-2 px-2 bg-gray-100 hover:bg-brand-accentLight hover:text-brand-darkGreen border border-gray-200 rounded-xl text-xs font-bold text-gray-700 transition">12 мес.</button>
+                                <button type="button" onclick="setPresetMonths(24)" class="flex-1 py-2 px-2 bg-gray-100 hover:bg-brand-accentLight hover:text-brand-darkGreen border border-gray-200 rounded-xl text-xs font-bold text-gray-700 transition">24 мес.</button>
+                                <button type="button" onclick="setPresetMonths(36)" class="flex-1 py-2 px-2 bg-gray-100 hover:bg-brand-accentLight hover:text-brand-darkGreen border border-gray-200 rounded-xl text-xs font-bold text-gray-700 transition">36 мес.</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GOAL VISUALIZATION & IMAGE CARD -->
+            <div class="bg-white border border-brand-border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-3">
+                <div class="space-y-2">
+                    <h2 class="font-bold text-base text-brand-darkGreen flex items-center justify-between border-b border-gray-100 pb-2">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-image text-purple-600"></i> Визуализация цели</span>
+                        <span class="text-[10px] text-brand-muted">Ориентир</span>
+                    </h2>
+                    <p class="text-xs text-brand-muted">Зафиксируйте цифровой ориентир финансовой цели</p>
+                </div>
+
+                <!-- Preview Area -->
+                <div class="relative w-full h-44 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center group shadow-inner">
+                    <img id="goalImagePreview" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" 
+                         alt="Цель" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                         onerror="this.src='https://placehold.co/600x400/F4F7F5/0B3D24?text=Визуализация+Цели'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent flex items-end p-3">
+                        <span id="previewOverlayText" class="text-xs font-bold text-white drop-shadow">Квартира (55 000 $)</span>
+                    </div>
+                </div>
+
+                <!-- Image Inputs -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <input type="text" id="imageUrl" placeholder="Ссылка на изображение (URL)..." 
+                               onchange="updateImageFromUrl()" class="w-full custom-input pl-8 pr-3 py-1.5 rounded-lg text-xs">
+                        <i class="fa-solid fa-link absolute left-2.5 top-2.5 text-brand-muted text-xs"></i>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="flex-1 bg-gray-100 hover:bg-brand-accentLight border border-gray-200 py-1.5 px-3 rounded-lg text-xs text-center font-semibold text-brand-darkGreen cursor-pointer transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-upload text-brand-emerald"></i>
+                            <span>Загрузить фото</span>
+                            <input type="file" id="imageFileInput" accept="image/*" onchange="uploadLocalImage(event)" class="hidden">
+                        </label>
+                        <button onclick="resetDefaultImage()" class="px-2.5 py-1.5 bg-gray-100 hover:bg-red-50 border border-gray-200 rounded-lg text-xs text-brand-muted hover:text-red-600 transition" title="Сбросить фото">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 200 POINTS RULE NOTICE BANNER -->
+        <div id="rule200Alert" class="hidden animate-fade-in p-4 rounded-2xl border border-amber-300 bg-amber-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-start gap-3">
+                <div class="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-amber-900 text-sm md:text-base flex items-center gap-2">
+                        Дневная норма для 1 лота превышает 200 пунктов
+                    </h3>
+                    <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                        При объёме 1 лот дневная норма составляет <span id="alertPointsVal" class="font-bold text-amber-950">0</span> пунктов в день. 
+                        Рекомендуется увеличить срок достижения цели или изменить рабочий объём для снижения рисков.
+                    </p>
+                </div>
+            </div>
+            <button onclick="autoAdjustTimeframe()" class="shrink-0 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                <span>Подобрать оптимальный срок</span>
+            </button>
+        </div>
+
+        <!-- MAIN CALCULATION TABLE CARD -->
+        <div class="bg-white border border-brand-border rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                <div>
+                    <h2 class="font-bold text-lg text-brand-darkGreen flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells text-brand-emerald"></i>
+                        Распределение нагрузки по торговым объёмам
+                    </h2>
+                    <p class="text-xs text-brand-muted">Разбивка пунктов (1 лот = $1/пкт, 2 лота = $2/пкт, 3 лота = $3/пкт и т.д.)</p>
+                </div>
+
+                <div id="manualModeActions" class="hidden flex items-center gap-2">
+                    <button onclick="fillCorrectManualValues()" class="px-3 py-1.5 rounded-xl bg-brand-accentLight border border-green-300 text-brand-darkGreen text-xs font-bold hover:bg-brand-emerald hover:text-white transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Заполнить по формулам</span>
+                    </button>
+                    <button onclick="clearManualInputs()" class="px-3 py-1.5 rounded-xl bg-gray-100 border border-gray-200 text-brand-muted text-xs font-semibold hover:text-brand-text transition">
+                        Очистить поля
+                    </button>
+                </div>
+            </div>
+
+            <!-- Responsive Table Container -->
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-brand-darkGreen text-xs uppercase font-extrabold border-b border-gray-200">
+                            <th class="py-3.5 px-4">Объём (лотов)</th>
+                            <th class="py-3.5 px-4">Всего пунктов</th>
+                            <th class="py-3.5 px-4">Пунктов в месяц</th>
+                            <th class="py-3.5 px-4">Пунктов в неделю</th>
+                            <th class="py-3.5 px-4 text-brand-emerald">Пунктов в день</th>
+                            <th class="py-3.5 px-4">Рекомендуемый депозит ($)</th>
+                            <th class="py-3.5 px-4 text-right">Маржа (плечо 1:200)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calcTableBody" class="divide-y divide-gray-100 text-sm">
+                        <!-- Dynamic JS Rows Generated Here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-brand-muted pt-1">
+                <span class="flex items-center gap-1">
+                    <i class="fa-solid fa-circle-info text-brand-emerald"></i>
+                    Расчёт времени: за <span id="tableMonthsFooter" class="font-bold text-brand-text">24</span> мес. — <span id="tableWeeksFooter" class="font-bold text-brand-text">96</span> раб. недель (<span id="tableDaysFooter" class="font-bold text-brand-text">480</span> торговых дней).
+                </span>
+                <span class="text-brand-gold font-semibold">
+                    * Депозит рассчитан из условия $10 000 на 1 лот безрисковой торговли.
+                </span>
+            </div>
+        </div>
+
+        <!-- SUMMARY & EXPORT CARD -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            
+            <!-- Summary Text Container (2 Cols) -->
+            <div class="lg:col-span-2 bg-white border border-brand-border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <h2 class="font-bold text-base text-brand-darkGreen flex items-center gap-2">
+                            <i class="fa-solid fa-file-lines text-brand-emerald"></i>
+                            Сводный текстовый план
+                        </h2>
+                        <span class="text-xs text-brand-emerald font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Сформирован
+                        </span>
+                    </div>
+
+                    <!-- Readonly Preview Box -->
+                    <div class="relative">
+                        <textarea id="summaryTextarea" readonly rows="8" 
+                                  class="w-full custom-input p-4 rounded-xl font-mono text-xs md:text-sm leading-relaxed text-gray-800 bg-gray-50 resize-none border-gray-200 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <button id="btnCopySummary" onclick="copySummaryText()" class="px-5 py-2.5 rounded-xl bg-brand-darkGreen hover:bg-emerald-900 text-white font-bold text-sm shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-copy text-brand-accent"></i>
+                            <span id="btnCopyText">Скопировать план для мессенджера</span>
+                        </button>
+                    </div>
+
+                    <button onclick="resetAllData()" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-red-50 border border-gray-200 text-brand-muted hover:text-red-600 font-semibold text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Сбросить параметры</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Goal Commitment Card (1 Col) -->
+            <div class="bg-white border border-brand-border rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <h2 class="font-bold text-base text-brand-darkGreen flex items-center gap-2 border-b border-gray-100 pb-2">
+                        <i class="fa-solid fa-bookmark text-brand-gold"></i>
+                        Фиксация цели
+                    </h2>
+                    <p class="text-xs text-brand-muted leading-relaxed">
+                        Формулировка для записей и личного трекера:
+                    </p>
+                    
+                    <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-2">
+                        <p class="font-bold text-xs uppercase tracking-wider text-amber-800">Установка:</p>
+                        <p id="commitmentText" class="text-sm font-bold italic text-brand-darkGreen">
+                            «Цель (Квартира) будет достигнута мной до 12.11.2028 г.»
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-green-50 border border-green-200 text-[11px] text-green-900">
+                    <i class="fa-solid fa-lightbulb text-brand-emerald mr-1"></i>
+                    <strong>Рекомендация:</strong> Сохраните зафиксированный дата-лайн выполнения цели.
+                </div>
+            </div>
+        </div>
+
+        <!-- REFERENCE TABLE ACCORDION -->
+        <details class="group bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden">
+            <summary class="p-4 text-left flex items-center justify-between cursor-pointer bg-white hover:bg-gray-50 transition list-none">
+                <span class="font-bold text-sm md:text-base text-brand-darkGreen flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-brand-emerald"></i>
+                    Управление рисками и параметры плеча 1:200
+                </span>
+                <i class="fa-solid fa-chevron-down text-brand-muted group-open:rotate-180 transition-transform duration-300"></i>
+            </summary>
+
+            <div class="p-4 border-t border-gray-200 bg-gray-50/50 space-y-3">
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brand-darkGreen text-white uppercase font-bold">
+                                <th class="py-2.5 px-3">Торговый объём</th>
+                                <th class="py-2.5 px-3">Стоимость 1 пкт</th>
+                                <th class="py-2.5 px-3">Макс. просадка</th>
+                                <th class="py-2.5 px-3">% участия депозита</th>
+                                <th class="py-2.5 px-3">Маржа (плечо 1:200)</th>
+                                <th class="py-2.5 px-3">Прибыль / Убыток (1000 пкт)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white font-mono text-gray-800">
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">1 лот</td>
+                                <td class="py-2 px-3">$1</td>
+                                <td class="py-2 px-3">20 000 пунктов</td>
+                                <td class="py-2 px-3">2.5 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$550 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$1 000 USD</td>
+                            </tr>
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">2 лота</td>
+                                <td class="py-2 px-3">$2</td>
+                                <td class="py-2 px-3">10 000 пунктов</td>
+                                <td class="py-2 px-3">5.0 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$1 100 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$2 000 USD</td>
+                            </tr>
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">4 лота</td>
+                                <td class="py-2 px-3">$4</td>
+                                <td class="py-2 px-3">5 000 пунктов</td>
+                                <td class="py-2 px-3">10.0 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$2 200 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$4 000 USD</td>
+                            </tr>
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">5 лотов</td>
+                                <td class="py-2 px-3">$5</td>
+                                <td class="py-2 px-3">4 000 пунктов</td>
+                                <td class="py-2 px-3">12.0 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$2 750 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$5 000 USD</td>
+                            </tr>
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">8 лотов</td>
+                                <td class="py-2 px-3">$8</td>
+                                <td class="py-2 px-3">2 500 пунктов</td>
+                                <td class="py-2 px-3">20.0 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$4 400 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$8 000 USD</td>
+                            </tr>
+                            <tr class="hover:bg-green-50/50">
+                                <td class="py-2 px-3 font-bold text-brand-darkGreen">10 лотов</td>
+                                <td class="py-2 px-3">$10</td>
+                                <td class="py-2 px-3">2 000 пунктов</td>
+                                <td class="py-2 px-3">25.0 %</td>
+                                <td class="py-2 px-3 font-bold text-brand-gold">$5 500 USD</td>
+                                <td class="py-2 px-3 font-bold text-brand-emerald">$10 000 USD</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </details>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="flex items-center gap-3 bg-brand-darkGreen border border-brand-accent px-4 py-3 rounded-xl shadow-xl text-white text-sm font-semibold">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-brand-accent text-lg"></i>
+            <span id="toastMsg">Уведомление</span>
+        </div>
+    </div>
+
+    <!-- APPLICATION LOGIC SCRIPT -->
+    <script>
+        // State variables
+        let currentMode = 'auto'; // 'auto' or 'manual'
+        const defaultImg = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80";
+
+        // Initialize on DOM load
+        window.onload = function() {
+            calculatePlan();
+        };
+
+        // Switch modes: Auto vs Manual
+        function setMode(mode) {
+            currentMode = mode;
+            const btnAuto = document.getElementById('btnModeAuto');
+            const btnManual = document.getElementById('btnModeManual');
+            const badge = document.getElementById('modeBadge');
+            const manualActions = document.getElementById('manualModeActions');
+
+            if (mode === 'auto') {
+                btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm";
+                btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text";
+                badge.innerText = "Режим: Автоматический (по формулам)";
+                badge.className = "text-xs px-3 py-1 rounded-full bg-brand-accentLight text-brand-darkGreen font-semibold border border-green-200";
+                manualActions.classList.add('hidden');
+            } else {
+                btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-goldLight text-amber-900 border border-amber-300 shadow-sm";
+                btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text";
+                badge.innerText = "Режим: Ручной ввод";
+                badge.className = "text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-300";
+                manualActions.classList.remove('hidden');
+            }
+
+            calculatePlan();
+        }
+
+        // Currency handling
+        function onUsdChange() {
+            const usdVal = parseFloat(document.getElementById('costUSD').value) || 0;
+            const rate = parseFloat(document.getElementById('usdRate').value) || 90;
+            if (usdVal > 0) {
+                document.getElementById('costRUB').value = Math.round(usdVal * rate);
+            } else {
+                document.getElementById('costRUB').value = '';
+            }
+            calculatePlan();
+        }
+
+        function onRubChange() {
+            const rubVal = parseFloat(document.getElementById('costRUB').value) || 0;
+            const rate = parseFloat(document.getElementById('usdRate').value) || 90;
+            if (rubVal > 0 && rate > 0) {
+                document.getElementById('costUSD').value = Math.round(rubVal / rate);
+            }
+            calculatePlan();
+        }
+
+        function setPresetMonths(months) {
+            document.getElementById('timeframeMonths').value = months;
+            calculatePlan();
+        }
+
+        // Main calculation logic
+        function calculatePlan() {
+            const goalName = document.getElementById('goalName').value.trim() || 'Квартира';
+            const costUSD = Math.max(100, parseFloat(document.getElementById('costUSD').value) || 55000);
+            const months = Math.max(1, parseInt(document.getElementById('timeframeMonths').value) || 24);
+            const selectedLot = parseInt(document.getElementById('selectedLot').value) || 1;
+
+            // Derived time metrics
+            const weeks = months * 4;
+            const days = weeks * 5;
+
+            // Update UI time indicators
+            const yearsVal = (months / 12).toFixed(1).replace('.0', '');
+            document.getElementById('timeframeYearsLabel').innerText = `${yearsVal} ${getYearDeclension(months / 12)}`;
+            document.getElementById('tableMonthsFooter').innerText = months;
+            document.getElementById('tableWeeksFooter').innerText = weeks;
+            document.getElementById('tableDaysFooter').innerText = days;
+            document.getElementById('previewOverlayText').innerText = `${goalName} (${formatNumber(costUSD)} $)`;
+
+            // Calculate rows for Lots 1 through 5
+            const tbody = document.getElementById('calcTableBody');
+            tbody.innerHTML = '';
+
+            let dailyPointsFor1Lot = 0;
+            let selectedRowMetrics = null;
+
+            for (let lot = 1; lot <= 5; lot++) {
+                // Formulas per financial plan methodology:
+                // Total points = Cost USD / Lot (1 lot = $1/point)
+                const totalPoints = Math.ceil(costUSD / lot);
+                const pointsPerMonth = Math.ceil(totalPoints / months);
+                const pointsPerWeek = Math.round((pointsPerMonth / 4));
+                const pointsPerDay = Math.round((pointsPerWeek / 5));
+                
+                const depositUSD = lot * 10000;
+                const marginUSD = lot * 550; // Margin at 1:200 leverage ($550 per lot)
+
+                if (lot === 1) {
+                    dailyPointsFor1Lot = pointsPerDay;
+                }
+
+                if (lot === selectedLot) {
+                    selectedRowMetrics = {
+                        lot,
+                        totalPoints,
+                        pointsPerMonth,
+                        pointsPerWeek,
+                        pointsPerDay,
+                        depositUSD,
+                        marginUSD
+                    };
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = `transition-colors duration-150 ${lot === selectedLot ? 'selected-lot-row font-medium' : 'hover:bg-gray-50'}`;
+
+                if (currentMode === 'auto') {
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 font-bold ${lot === selectedLot ? 'text-brand-darkGreen' : 'text-gray-900'}">
+                            ${lot} ${lot === 1 ? 'лот' : lot < 5 ? 'лота' : 'лотов'}
+                            ${lot === selectedLot ? '<span class="ml-2 text-[10px] bg-brand-emerald text-white px-2 py-0.5 rounded-full font-bold">Выбран</span>' : ''}
+                        </td>
+                        <td class="py-3.5 px-4 text-gray-700">${formatNumber(totalPoints)} пкт</td>
+                        <td class="py-3.5 px-4 text-gray-700">${formatNumber(pointsPerMonth)} пкт</td>
+                        <td class="py-3.5 px-4 text-gray-700">${formatNumber(pointsPerWeek)} пкт</td>
+                        <td class="py-3.5 px-4 font-extrabold text-brand-emerald">${formatNumber(pointsPerDay)} пкт/день</td>
+                        <td class="py-3.5 px-4 text-gray-900 font-bold">$${formatNumber(depositUSD)}</td>
+                        <td class="py-3.5 px-4 text-right">
+                            <span class="text-brand-gold font-bold">$${formatNumber(marginUSD)}</span>
+                        </td>
+                    `;
+                } else {
+                    // Manual mode: editable inputs
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 font-bold text-gray-900">
+                            ${lot} ${lot === 1 ? 'лот' : lot < 5 ? 'лота' : 'лотов'}
+                        </td>
+                        <td class="py-2 px-2"><input type="number" data-correct="${totalPoints}" placeholder="${totalPoints}" class="manual-table-input"></td>
+                        <td class="py-2 px-2"><input type="number" data-correct="${pointsPerMonth}" placeholder="${pointsPerMonth}" class="manual-table-input"></td>
+                        <td class="py-2 px-2"><input type="number" data-correct="${pointsPerWeek}" placeholder="${pointsPerWeek}" class="manual-table-input"></td>
+                        <td class="py-2 px-2"><input type="number" data-correct="${pointsPerDay}" placeholder="${pointsPerDay}" class="manual-table-input"></td>
+                        <td class="py-3.5 px-4 text-gray-900 font-bold">$${formatNumber(depositUSD)}</td>
+                        <td class="py-3.5 px-4 text-right text-brand-gold font-bold">$${formatNumber(marginUSD)}</td>
+                    `;
+                }
+
+                tbody.appendChild(tr);
+            }
+
+            // Check 200 Points Rule
+            const alertBanner = document.getElementById('rule200Alert');
+            if (dailyPointsFor1Lot > 200) {
+                document.getElementById('alertPointsVal').innerText = formatNumber(dailyPointsFor1Lot);
+                alertBanner.classList.remove('hidden');
+            } else {
+                alertBanner.classList.add('hidden');
+            }
+
+            // Build Summary & Commitment Text
+            updateSummaryOutputs(goalName, costUSD, months, selectedRowMetrics);
+        }
+
+        // 200 points rule auto adjust
+        function autoAdjustTimeframe() {
+            const costUSD = Math.max(100, parseFloat(document.getElementById('costUSD').value) || 55000);
+            // 200 points/day = 1000/week = 4000/month
+            const requiredMonths = Math.max(1, Math.ceil(costUSD / 4000));
+            document.getElementById('timeframeMonths').value = requiredMonths;
+            calculatePlan();
+            showToast(`Срок скорректирован до ${requiredMonths} мес. (${(requiredMonths/12).toFixed(1)} г.), чтобы норма на 1 лот <= 200 пкт/день.`);
+        }
+
+        // Interactive manual mode helper functions
+        function fillCorrectManualValues() {
+            const inputs = document.querySelectorAll('.manual-table-input');
+            inputs.forEach(input => {
+                input.value = input.getAttribute('data-correct');
+            });
+            showToast("Таблица заполнена расчётными значениями!");
+        }
+
+        function clearManualInputs() {
+            const inputs = document.querySelectorAll('.manual-table-input');
+            inputs.forEach(input => input.value = '');
+        }
+
+        // Summary Text Generation
+        function updateSummaryOutputs(goalName, costUSD, months, metrics) {
+            if (!metrics) return;
+
+            const targetDate = calculateTargetDate(months);
+
+            const text = 
+`🎯 ИНДИВИДУАЛЬНЫЙ ФИНАНСОВЫЙ ПЛАН
+
+🔹 Финансовая цель: ${goalName}
+💰 Стоимость цели: $${formatNumber(costUSD)}
+⏳ Срок реализации: ${months} месяцев (${(months/12).toFixed(1).replace('.0', '')} г.)
+📅 Расчётная дата достижения: ${targetDate}
+
+📊 РАСЧЁТ ТОРГОВЛИ И НАГРУЗКИ:
+• Выбранный объём: ${metrics.lot} ${metrics.lot === 1 ? 'лот' : metrics.lot < 5 ? 'лота' : 'лотов'}
+• Пунктов в месяц: ${formatNumber(metrics.pointsPerMonth)} пкт
+• Пунктов в неделю: ${formatNumber(metrics.pointsPerWeek)} пкт
+• Пунктов в день: ${formatNumber(metrics.pointsPerDay)} пкт/день
+
+🛡 КАПИТАЛ И ОБЕСПЕЧЕНИЕ:
+• Рекомендуемый депозит: $${formatNumber(metrics.depositUSD)} (безрисковая торговля)
+• Маржа (плечо 1:200): $${formatNumber(metrics.marginUSD)}
+
+✍️ Установка:
+«Цель (${goalName}) будет достигнута мной до ${targetDate} г.»`;
+
+            document.getElementById('summaryTextarea').value = text;
+            document.getElementById('commitmentText').innerText = `«Цель (${goalName}) будет достигнута мной до ${targetDate} г.»`;
+        }
+
+        // Image Handling
+        function updateImageFromUrl() {
+            const url = document.getElementById('imageUrl').value.trim();
+            const img = document.getElementById('goalImagePreview');
+            if (url) {
+                img.src = url;
+            }
+        }
+
+        function uploadLocalImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('goalImagePreview').src = e.target.result;
+                    document.getElementById('imageUrl').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetDefaultImage() {
+            document.getElementById('goalImagePreview').src = defaultImg;
+            document.getElementById('imageUrl').value = '';
+        }
+
+        // Copy Clipboard Helper
+        function copySummaryText() {
+            const textarea = document.getElementById('summaryTextarea');
+            const textToCopy = textarea.value;
+
+            const btnText = document.getElementById('btnCopyText');
+            
+            const handleSuccess = () => {
+                btnText.innerText = 'Скопировано ✓';
+                showToast("Текст финансового плана скопирован в буфер обмена!");
+                setTimeout(() => {
+                    btnText.innerText = 'Скопировать план для мессенджера';
+                }, 2500);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(handleSuccess)
+                    .catch(() => fallbackCopy(textToCopy, handleSuccess));
+            } else {
+                fallbackCopy(textToCopy, handleSuccess);
+            }
+        }
+
+        function fallbackCopy(text, callback) {
+            const tempArea = document.createElement("textarea");
+            tempArea.value = text;
+            tempArea.style.position = "fixed";
+            tempArea.style.left = "-9999px";
+            document.body.appendChild(tempArea);
+            tempArea.focus();
+            tempArea.select();
+            try {
+                document.execCommand('copy');
+                if (callback) callback();
+            } catch (err) {
+                showToast("Выделите текст вручную.", true);
+            }
+            document.body.removeChild(tempArea);
+        }
+
+        // Reset Form Data
+        function resetAllData() {
+            document.getElementById('goalName').value = 'Квартира';
+            document.getElementById('costUSD').value = '55000';
+            document.getElementById('costRUB').value = '';
+            document.getElementById('usdRate').value = '90';
+            document.getElementById('timeframeMonths').value = '24';
+            document.getElementById('selectedLot').value = '1';
+            resetDefaultImage();
+            calculatePlan();
+            showToast("Все параметры сброшены к исходным значениям");
+        }
+
+        // Toast Notification Function
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-brand-accent text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Utility Helpers
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        function calculateTargetDate(monthsToAdd) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + parseInt(monthsToAdd));
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function getYearDeclension(years) {
+            const y = Math.floor(years);
+            if (y === 1) return 'год';
+            if (y >= 2 && y <= 4) return 'года';
+            return 'лет';
+        }
+    </script>
+</body>
+</html>
