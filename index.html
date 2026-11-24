@@ -147,13 +147,13 @@
 
             <!-- MODE SWITCHER -->
             <div class="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200 w-full md:w-auto">
-                <button type="button" id="btnModeAuto" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm">
-                    <i class="fa-solid fa-calculator text-brand-accent"></i>
-                    <span>Авторасчёт по формулам</span>
+                <button type="button" id="btnModeAuto" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-calculator text-brand-accent pointer-events-none"></i>
+                    <span class="pointer-events-none">Авторасчёт по формулам</span>
                 </button>
-                <button type="button" id="btnModeManual" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>Ручной ввод (совместный расчёт)</span>
+                <button type="button" id="btnModeManual" class="mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text cursor-pointer">
+                    <i class="fa-solid fa-pen-to-square pointer-events-none"></i>
+                    <span class="pointer-events-none">Ручной ввод (совместный расчёт)</span>
                 </button>
             </div>
         </header>
@@ -256,7 +256,7 @@
                             <label for="costRUB" class="flex items-center gap-1.5"><i class="fa-solid fa-ruble-sign text-blue-600"></i> В рублях (₽)</label>
                             <span class="text-[10px] text-brand-muted font-normal flex items-center gap-1">
                                 <span id="cbrRateLabel" title="Курс ЦБ РФ">Курс USD:</span>
-                                <input type="number" id="usdRate" value="90" step="0.01" class="w-14 bg-white text-right text-brand-text font-bold border border-gray-300 rounded px-1 focus:outline-none focus:border-brand-emerald"> ₽
+                                <input type="number" id="usdRate" value="90" step="0.01" class="w-16 bg-white text-right text-brand-text font-bold border border-gray-300 rounded px-1 focus:outline-none focus:border-brand-emerald"> ₽
                                 <button type="button" id="btnRefreshCbr" title="Обновить актуальный курс ЦБ РФ" class="text-brand-emerald hover:text-brand-darkGreen px-1 transition cursor-pointer">
                                     <i id="cbrRefreshIcon" class="fa-solid fa-arrows-rotate pointer-events-none"></i>
                                 </button>
@@ -264,7 +264,7 @@
                         </div>
                         <div class="relative">
                             <input type="number" id="costRUB" placeholder="Сумма в рублях" 
-                                   class="w-full custom-input pl-8 pr-3 py-2 rounded-lg text-sm text-brand-text">
+                                   class="w-full custom-input pl-8 pr-3 py-2 rounded-lg text-sm font-semibold text-brand-text">
                             <span class="absolute left-3 top-2.5 text-brand-muted font-bold text-sm pointer-events-none">₽</span>
                         </div>
                     </div>
@@ -654,8 +654,20 @@
                 document.getElementById('btnCopySummary').addEventListener('click', copySummaryText);
                 document.getElementById('btnResetAll').addEventListener('click', resetAllData);
 
+                // Первичный расчёт суммы в рублях и таблицы
+                syncRubFromUsd();
                 calculatePlan();
                 fetchCbrRate(false);
+            }
+
+            function syncRubFromUsd() {
+                const usdVal = parseFloat(document.getElementById('costUSD').value) || 0;
+                const rate = parseFloat(document.getElementById('usdRate').value) || 90;
+                if (usdVal > 0 && rate > 0) {
+                    document.getElementById('costRUB').value = Math.round(usdVal * rate);
+                } else {
+                    document.getElementById('costRUB').value = '';
+                }
             }
 
             async function fetchCbrRate(notify = false) {
@@ -674,10 +686,8 @@
                         document.getElementById('usdRate').value = rate;
                         if (label) label.innerText = 'Курс ЦБ РФ:';
 
-                        const rubInput = document.getElementById('costRUB');
-                        if (rubInput && parseFloat(rubInput.value) > 0) {
-                            onRubChange();
-                        }
+                        // Пересчитываем рубли от базовой валюты ($) по актуальному курсу ЦБ РФ
+                        syncRubFromUsd();
 
                         if (notify) {
                             showToast(`Курс ЦБ РФ обновлён: 1 $ = ${rate} ₽`);
@@ -701,15 +711,15 @@
                 const tableSubHint = document.getElementById('tableSubHint');
 
                 if (mode === 'auto') {
-                    btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm";
-                    btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text";
+                    btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-darkGreen text-white shadow-sm cursor-pointer";
+                    btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text cursor-pointer";
                     badge.innerText = "Режим: Автоматический";
                     badge.className = "text-xs px-3 py-1 rounded-full bg-brand-accentLight text-brand-darkGreen font-semibold border border-green-200";
                     manualActions.classList.add('hidden');
                     tableSubHint.innerText = "Разбивка пунктов (1 лот = $1/пкт, 5 лотов = $5/пкт, 10 лотов = $10/пкт)";
                 } else {
-                    btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-goldLight text-amber-900 border border-amber-300 shadow-sm";
-                    btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text";
+                    btnManual.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 bg-brand-goldLight text-amber-900 border border-amber-300 shadow-sm cursor-pointer";
+                    btnAuto.className = "mode-btn flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-2 text-brand-muted hover:text-brand-text cursor-pointer";
                     badge.innerText = "Режим: Ручной ввод";
                     badge.className = "text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-300";
                     manualActions.classList.remove('hidden');
@@ -806,13 +816,7 @@
 
             function onUsdChange() {
                 manualValues = {};
-                const usdVal = parseFloat(document.getElementById('costUSD').value) || 0;
-                const rate = parseFloat(document.getElementById('usdRate').value) || 90;
-                if (usdVal > 0) {
-                    document.getElementById('costRUB').value = Math.round(usdVal * rate);
-                } else {
-                    document.getElementById('costRUB').value = '';
-                }
+                syncRubFromUsd();
                 calculatePlan();
             }
 
@@ -827,10 +831,8 @@
             }
 
             function onRateInput() {
-                const rubVal = parseFloat(document.getElementById('costRUB').value) || 0;
-                if (rubVal > 0) {
-                    onRubChange();
-                }
+                // При изменении курса пересчитываем рубли от базовой валюты ($)
+                syncRubFromUsd();
             }
 
             function setPresetMonths(months) {
@@ -963,7 +965,6 @@
                     tbody.appendChild(tr);
                 });
 
-                // Attach events for dynamic table elements
                 tbody.querySelectorAll('.remove-extra-lot').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const lot = parseInt(btn.getAttribute('data-remove-lot'), 10);
@@ -1130,7 +1131,6 @@
                 manualValues = {};
                 document.getElementById('goalName').value = 'Квартира';
                 document.getElementById('costUSD').value = '55000';
-                document.getElementById('costRUB').value = '';
                 document.getElementById('timeframeMonths').value = '24';
                 document.getElementById('selectedLot').value = '1';
                 document.getElementById('customDepositInput').value = '15000';
@@ -1138,6 +1138,7 @@
                 updateExtraLotChips();
                 setDepositModel('20k_fixed');
                 resetDefaultImage();
+                syncRubFromUsd();
                 fetchCbrRate(false);
                 calculatePlan();
                 showToast("Все параметры сброшены к исходным значениям");
